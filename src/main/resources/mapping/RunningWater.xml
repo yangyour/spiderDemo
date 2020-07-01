@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.sptiledemo.mapper.RunningWaterMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.sptiledemo.bean.RunningWater">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="one" property="one"/>
+        <result column="two" property="two"/>
+        <result column="three" property="three"/>
+        <result column="four" property="four"/>
+    </resultMap>
+
+    <insert id="save" parameterType="com.example.sptiledemo.bean.RunningWater">
+        insert into runningWater (code,one,two,three,four) values
+          (
+            #{runningWater.code},#{runningWater.one},#{runningWater.two},#{runningWater.three},#{runningWater.four}
+            )
+    </insert>
+
+    <select id="selectByConCode" parameterType="String" resultMap="BaseResultMap">
+        select * from runningWater where code=#{code}
+    </select>
+
+</mapper>

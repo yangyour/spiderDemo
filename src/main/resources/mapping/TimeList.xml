@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.sptiledemo.mapper.TimeListMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.sptiledemo.bean.TimeList">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="time" property="time"/>
+    </resultMap>
+
+    <insert id="save" parameterType="com.example.sptiledemo.bean.TimeList">
+        insert into timeList (code,name,time) values
+          (
+            #{timeList.code},#{timeList.name},#{timeList.time}
+            )
+    </insert>
+
+    <select id="selectByConCode" parameterType="String" resultMap="BaseResultMap">
+        select * from timeList where code=#{code}
+        <if test="name != null and name != ''">
+            and name like concat('%',#{name},'%')
+        </if>
+        and time is not null
+    </select>
+
+    <select id="selectCode" parameterType="String" resultMap="BaseResultMap">
+        select * from timeList where code=#{code}
+        <if test="name != null and name != ''">
+            and name like concat('%',#{name},'%')
+        </if>
+    </select>
+
+    <!--    <select id="selectCount" resultType="Integer">-->
+    <!--        select count(1) from qcspiter;-->
+    <!--    </select>-->
+
+</mapper>

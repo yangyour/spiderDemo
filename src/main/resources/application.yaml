@@ -1,13 +1,13 @@
 spring:
     datasource:
         username: root
-        password: 123456
+        password: root
         url: jdbc:mysql://localhost:3306/learn?serverTimezone=CTT&useUnicode=true&characterEncoding=utf-8
         driver-class-name: com.mysql.jdbc.Driver
     redis:
         host: 127.0.0.1
 mybatis:
-    mapper-locations: classpath:mapping/QcspiterMapper.xml
+    mapper-locations: classpath:mapping/*.xml
     type-aliases-package: com.example.sptiledemo.bean
 # 分页配置
 pagehelper:

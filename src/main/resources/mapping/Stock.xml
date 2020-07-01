@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.sptiledemo.mapper.StockMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.sptiledemo.bean.Stock">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="conCode" property="conCode"/>
+        <result column="proportion" property="proportion"/>
+    </resultMap>
+
+    <insert id="save" parameterType="com.example.sptiledemo.bean.Stock">
+        insert into stock (code,name,conCode,proportion) values
+          (
+            #{stock.code},#{stock.name},#{stock.conCode},#{stock.proportion}
+            )
+    </insert>
+
+    <select id="selectByConCode" parameterType="String" resultMap="BaseResultMap">
+        select * from stock where conCode=#{conCode}
+        <if test="conNames != null and conNames != ''">
+            and name like concat(#{conNames},'%')
+        </if>
+    </select>
+
+<!--    <select id="selectCount" resultType="Integer">-->
+<!--        select count(1) from qcspiter;-->
+<!--    </select>-->
+
+</mapper>
