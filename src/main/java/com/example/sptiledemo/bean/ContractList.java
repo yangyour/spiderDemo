@@ -30,6 +30,8 @@ public class ContractList {
     private String noTex;
     private String status;
     private String time;
+    //阶段状态
+    private String stageStatus;
     //终止时间
     private String endTime;
     //比例
@@ -188,5 +190,13 @@ public class ContractList {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public String getStageStatus() {
+        return stageStatus;
+    }
+
+    public void setStageStatus(String stageStatus) {
+        this.stageStatus = stageStatus;
     }
 }

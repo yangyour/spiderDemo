@@ -107,6 +107,7 @@ public class TestController {
             row.createCell(28).setCellValue(contractList.get(i).getEndTime());
             row.createCell(31).setCellValue(contractList.get(i).getStatus());
             row.createCell(32).setCellValue(contractList.get(i).getTime());
+            row.createCell(33).setCellValue(contractList.get(i).getStageStatus());
         }
         overExcel(excel);
     }
@@ -128,6 +129,7 @@ public class TestController {
 
     public List<ContractList> getContractList(List<Contract> contracts) {
         List<ContractList> contractLists = new ArrayList<>();
+        DecimalFormat df = new DecimalFormat("0.00");
         int row = 1;
         for (Contract contract : contracts) {
             if (contract.getStatus() == null) {
@@ -304,45 +306,66 @@ public class TestController {
                                         timeLists = timeListMapper.selectByConCode(code, conNames);
                                     }
                                     if (timeLists.size() < 2 && timeLists.size() > 0) {
-                                        ContractList contractList = new ContractList();
-                                        contractList.setSource("存货");
-                                        contractList.setTax("6");
-                                        contractList.setDiscount("100");
-                                        contractList.setRows(row);
-                                        contractList.setCode(contract.getCode());
-                                        contractList.setName(contract.getName());
-                                        if (timeLists.size() > 0) {
-                                            if (stocks.size() > 0) {
-                                                contractList.setConName(stocks.get(timeLists.size() - 1).getName());
+                                        Iterator<TimeList> iterator = timeLists.iterator();
+                                        while (iterator.hasNext()) {
+                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                                            try {
+                                                Date date1 = format.parse(iterator.next().getTime());
+                                                Date date2 = format.parse(contract.getTime());
+                                                int compareTo = date1.compareTo(date2);
+                                                if (compareTo==1){
+                                                    iterator.remove();
+                                                }
+                                            } catch (ParseException e) {
+                                                e.printStackTrace();
                                             }
                                         }
-                                        contractList.setdCode(contract.getType());
-                                        String fcode = contract.getType().substring(0, 2);
-                                        contractList.setfCode(fcode);
-                                        contractList.setbCode(fcode + contract.getType());
-                                        //对数量进行处理
-                                        contractList.setCount("1");
+                                        if (timeLists.size()>0){
+                                            ContractList contractList = new ContractList();
+                                            contractList.setSource("存货");
+                                            contractList.setTax("6");
+                                            contractList.setDiscount("100");
+                                            contractList.setRows(row);
+                                            contractList.setCode(contract.getCode());
+                                            contractList.setName(contract.getName());
+                                            if (timeLists.size() > 0) {
+                                                if (stocks.size() > 0) {
+                                                    contractList.setConName(stocks.get(timeLists.size() - 1).getName());
+                                                }
+                                            }
+                                            contractList.setdCode(contract.getType());
+                                            String fcode = contract.getType().substring(0, 2);
+                                            contractList.setfCode(fcode);
+                                            contractList.setbCode(fcode + contract.getType());
+                                            //对数量进行处理
+                                            ;
 //                                contractList.setCount(stocks.get(timeLists.size()-1).getProportion());
-                                        String money = getRows(conSp[j], contract);
-                                        Double aMoney = Double.valueOf(money);
+                                            String money = getRows(conSp[j], contract);
+                                            Double aMoney = Double.valueOf(money);
 
-                                        contractList.setMoney(money);
-                                        //比例
-                                        Double con = Double.valueOf(runningWater.getOne());
-                                        Double noTe = aMoney * con;
-                                        contractList.setNoTex(noTe.toString());
-                                        String inTex = getOnTex(noTe.toString());
-                                        contractList.setInTex(inTex);
-                                        if (stocks.size() > 0) {
-                                            List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(timeLists.size() - 1).getName());
-                                            if (endtime.size() > 0) {
-                                                contractList.setEndTime(endtime.get(0).getTime());
+                                            contractList.setMoney(money);
+                                            //比例
+                                            Double con = Double.valueOf(runningWater.getOne());
+                                            Double noTe = aMoney * con;
+                                            double v = noTe / aMoney;
+                                            contractList.setCount(df.format(v));
+                                            contractList.setNoTex(df.format(noTe));
+                                            String inTex = getOnTex(noTe.toString());
+                                            contractList.setInTex(inTex);
+                                            if (stocks.size() > 0) {
+                                                List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(timeLists.size() - 1).getName());
+                                                if (endtime.size() > 0) {
+                                                    contractList.setEndTime(endtime.get(0).getTime());
+                                                }
                                             }
+                                            if (!runningWater.getOne().equals("1.0")){
+                                                contractList.setStageStatus("该项目只做到了申报阶段");
+                                            }
+                                            contractList.setStatus(contract.getStatus());
+                                            contractList.setTime(contract.getTime());
+                                            contractLists.add(contractList);
+                                            row++;
                                         }
-                                        contractList.setStatus(contract.getStatus());
-                                        contractList.setTime(contract.getTime());
-                                        contractLists.add(contractList);
-                                        row++;
                                     }
                                     if (timeLists.size() >= 8) {
                                         Double fontMoney = Double.valueOf(0);
@@ -455,20 +478,21 @@ public class TestController {
                                             for (int i = 0; i < stocks.size(); i++) {
                                                 name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                for (TimeList timeList : timeLists) {
-                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                                Iterator<TimeList> iterator = timeLists.iterator();
+                                                while (iterator.hasNext()) {
+                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
                                                     try {
-                                                        Date date1 = format.parse(timeList.getTime());
+                                                        Date date1 = format.parse(iterator.next().getTime());
                                                         Date date2 = format.parse(contract.getTime());
                                                         int compareTo = date1.compareTo(date2);
                                                         if (compareTo==1){
-                                                            timeLists.remove(timeList);
+                                                            iterator.remove();
                                                         }
                                                     } catch (ParseException e) {
                                                         e.printStackTrace();
                                                     }
                                                 }
-                                                if (timeLists1 != null) {
+                                                if (timeLists1.size()>0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -520,7 +544,7 @@ public class TestController {
                                                             String toString = Double.toString(d1);
                                                             contractList.setCount(toString);
                                                         }
-                                                    } else if (o3 != null && stocks.get(i).getName().contains("发行与上市")) {
+                                                    } else if (o4 != null && stocks.get(i).getName().contains("发行与上市")) {
                                                         if (money != null) {
                                                             Double ont = Double.valueOf(money) * Double.valueOf(o4);
                                                             String onTex = ont.toString();
@@ -546,7 +570,21 @@ public class TestController {
                                             for (int i = 0; i < stocks.size(); i++) {
                                                 name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                if (timeLists1 != null) {
+                                                Iterator<TimeList> iterator = timeLists.iterator();
+                                                while (iterator.hasNext()) {
+                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                                                    try {
+                                                        Date date1 = format.parse(iterator.next().getTime());
+                                                        Date date2 = format.parse(contract.getTime());
+                                                        int compareTo = date1.compareTo(date2);
+                                                        if (compareTo==1){
+                                                            iterator.remove();
+                                                        }
+                                                    } catch (ParseException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                                if (timeLists1.size()>0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -559,13 +597,52 @@ public class TestController {
                                                     String fcode = contract.getType().substring(0, 2);
                                                     contractList.setfCode(fcode);
                                                     contractList.setbCode(fcode + contract.getType());
-                                                    contractList.setCount(stocks.get(i).getProportion());
+                                                    contractList.setStatus(contract.getStatus());
+                                                    contractList.setNoTex("0");
+                                                    contractList.setInTex("0");
+                                                    contractList.setCount("0");
                                                     String money = getRows(conSp[j], contract);
-                                                    if (money != null) {
-                                                        String onTex = getInTex(money, stocks.get(i).getProportion());
-                                                        contractList.setNoTex(onTex);
-                                                        String inTex = getOnTex(onTex);
-                                                        contractList.setInTex(inTex);
+                                                    contractList.setMoney(money);
+                                                    if (o1 != null && stocks.get(i).getName().contains("申报")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o1);
+                                                            String onTex = df.format(ont);
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            contractList.setCount(o1);
+                                                            contractList.setStageStatus("到了申报");
+                                                        }
+                                                    } else if (o2 != null && stocks.get(i).getName().contains("反馈")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o2);
+                                                            String onTex = df.format(ont);
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            contractList.setCount(o2);
+                                                            contractList.setStageStatus("到了反馈");
+                                                        }
+                                                    } else if (o3 != null && stocks.get(i).getName().contains("上会")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o3);
+                                                            String onTex = df.format(ont);
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            contractList.setCount(o3);
+                                                            contractList.setStageStatus("到了上会");
+                                                        }
+                                                    } else if (o4 != null && stocks.get(i).getName().contains("发行与上市")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o4);
+                                                            String onTex = df.format(ont);
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            contractList.setCount(o4);
+                                                            contractList.setStageStatus("到了发行与上市");
+                                                        }
                                                     }
                                                     List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(i).getName());
                                                     if (endtime.size() > 0) {
@@ -661,35 +738,62 @@ public class TestController {
 //                                    Date uDate = fomartTime(timeList1);
 //                                    int compareTo = fDate.compareTo(uDate);
                                     if (timeLists.size() < 2 && timeLists.size() > 0) {
-                                        ContractList contractList = new ContractList();
-                                        contractList.setSource("存货");
-                                        contractList.setTax("6");
-                                        contractList.setDiscount("100");
-                                        contractList.setRows(row);
-                                        contractList.setCode(contract.getCode());
-                                        contractList.setName(contract.getName());
-                                        contractList.setConName(stocks.get(timeLists.size() - 1).getName());
-                                        contractList.setdCode(contract.getType());
-                                        String fcode = contract.getType().substring(0, 2);
-                                        contractList.setfCode(fcode);
-                                        contractList.setbCode(fcode + contract.getType());
-                                        //对数量进行处理
-                                        contractList.setCount("1");
+                                        Iterator<TimeList> iterator = timeLists.iterator();
+                                        while (iterator.hasNext()) {
+                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                                            try {
+                                                Date date1 = format.parse(iterator.next().getTime());
+                                                Date date2 = format.parse(contract.getTime());
+                                                int compareTo = date1.compareTo(date2);
+                                                if (compareTo==1){
+                                                    iterator.remove();
+                                                }
+                                            } catch (ParseException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        if (timeLists.size()>0){
+                                            ContractList contractList = new ContractList();
+                                            contractList.setSource("存货");
+                                            contractList.setTax("6");
+                                            contractList.setDiscount("100");
+                                            contractList.setRows(row);
+                                            contractList.setCode(contract.getCode());
+                                            contractList.setName(contract.getName());
+                                            if (timeLists.size() > 0) {
+                                                if (stocks.size() > 0) {
+                                                    contractList.setConName(timeLists.get(0).getName());
+                                                }
+                                            }
+                                            contractList.setdCode(contract.getType());
+                                            String fcode = contract.getType().substring(0, 2);
+                                            contractList.setfCode(fcode);
+                                            contractList.setbCode(fcode + contract.getType());
+                                            //对数量进行处理
+                                            ;
 //                                contractList.setCount(stocks.get(timeLists.size()-1).getProportion());
-                                        String money = getRows(conSp[j], contract);
-                                        Double aMoney = Double.valueOf(money);
+                                            String money = getRows(conSp[j], contract);
+                                            Double aMoney = Double.valueOf(money);
 
-                                        contractList.setMoney(money);
-                                        //比例
-                                        Double con = Double.valueOf(runningWater.getOne());
-                                        Double noTe = aMoney * con;
-                                        contractList.setNoTex(noTe.toString());
-                                        String inTex = getOnTex(noTe.toString());
-                                        contractList.setInTex(inTex);
-                                        contractList.setStatus(contract.getStatus());
-                                        contractList.setTime(contract.getTime());
-                                        contractLists.add(contractList);
-                                        row++;
+                                            contractList.setMoney(money);
+                                            //比例
+                                            Double con = Double.valueOf(runningWater.getOne());
+                                            double v = con / aMoney;
+                                            contractList.setCount(df.format(v));
+                                            contractList.setNoTex(df.format(con));
+                                            String inTex = getOnTex(df.format(con));
+                                            contractList.setInTex(inTex);
+                                            if (stocks.size() > 0) {
+                                                contractList.setConName(timeLists.get(0).getName());
+                                            }
+                                            if (!runningWater.getOne().equals("1.0")){
+                                                contractList.setStageStatus("该项目只做到了申报阶段");
+                                            }
+                                            contractList.setStatus(contract.getStatus());
+                                            contractList.setTime(contract.getTime());
+                                            contractLists.add(contractList);
+                                            row++;
+                                        }
                                     }
                                     if (timeLists.size() >= 8) {
                                         Double fontMoney = Double.valueOf(0);
@@ -869,7 +973,21 @@ public class TestController {
                                             for (int i = 0; i < stocks.size(); i++) {
                                                 name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                if (timeLists1 != null) {
+                                                Iterator<TimeList> iterator = timeLists.iterator();
+                                                while (iterator.hasNext()) {
+                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                                                    try {
+                                                        Date date1 = format.parse(iterator.next().getTime());
+                                                        Date date2 = format.parse(contract.getTime());
+                                                        int compareTo = date1.compareTo(date2);
+                                                        if (compareTo==1){
+                                                            iterator.remove();
+                                                        }
+                                                    } catch (ParseException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                                if (timeLists1.size()>0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -882,13 +1000,64 @@ public class TestController {
                                                     String fcode = contract.getType().substring(0, 2);
                                                     contractList.setfCode(fcode);
                                                     contractList.setbCode(fcode + contract.getType());
-                                                    contractList.setCount(stocks.get(i).getProportion());
+                                                    contractList.setStatus(contract.getStatus());
+                                                    contractList.setNoTex("0");
+                                                    contractList.setInTex("0");
+                                                    contractList.setCount("0");
                                                     String money = getRows(conSp[j], contract);
-                                                    if (money != null) {
-                                                        String onTex = getInTex(money, stocks.get(i).getProportion());
-                                                        contractList.setNoTex(onTex);
-                                                        String inTex = getOnTex(onTex);
-                                                        contractList.setInTex(inTex);
+                                                    contractList.setMoney(money);
+                                                    if (o1 != null && stocks.get(i).getName().contains("申报")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o1);
+                                                            String onTex = ont.toString();
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            Double i1 = Double.valueOf(o1) / Double.valueOf(money);
+                                                            String format = df.format(i1);
+                                                            contractList.setCount(format);
+                                                            contractList.setStageStatus("到了申报");
+                                                        }
+                                                    } else if (o2 != null && stocks.get(i).getName().contains("反馈")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o2);
+                                                            String onTex = ont.toString();
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            Double i1 = Double.valueOf(o2) / Double.valueOf(money);
+                                                            String format = df.format(i1);
+                                                            contractList.setCount(format);
+                                                            contractList.setStageStatus("到了反馈");
+                                                        }
+                                                    } else if (o3 != null && stocks.get(i).getName().contains("上会")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o3);
+                                                            String onTex = ont.toString();
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            Double i1 = Double.valueOf(o3) / Double.valueOf(money);
+                                                            String format = df.format(i1);
+                                                            contractList.setCount(format);
+                                                            contractList.setStageStatus("到了上会");
+                                                        }
+                                                    } else if (o4 != null && stocks.get(i).getName().contains("发行与上市")) {
+                                                        if (money != null) {
+                                                            Double ont = Double.valueOf(money) * Double.valueOf(o4);
+                                                            String onTex = ont.toString();
+                                                            contractList.setNoTex(onTex);
+                                                            String inTex = getOnTex(onTex);
+                                                            contractList.setInTex(inTex);
+                                                            Double i1 = Double.valueOf(o4) / Double.valueOf(money);
+                                                            String format = df.format(i1);
+                                                            contractList.setCount(format);
+                                                            contractList.setStageStatus("到了发行与上市");
+                                                        }
+                                                    }
+                                                    List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(i).getName());
+                                                    if (endtime.size() > 0) {
+                                                        contractList.setEndTime(endtime.get(0).getTime());
                                                     }
                                                     contractList.setStatus(contract.getStatus());
                                                     contractList.setTime(contract.getTime());
@@ -935,7 +1104,7 @@ public class TestController {
                                                 contractList.setRows(row);
                                                 contractList.setCode(contract.getCode());
                                                 contractList.setName(contract.getName());
-                                                contractList.setConName(stocks.get(timeLists.size() - 1).getName());
+                                                contractList.setConName(stocks.get(stocks.size() - 1).getName());
                                                 contractList.setdCode(contract.getType());
                                                 String fcode = contract.getType().substring(0, 2);
                                                 contractList.setfCode(fcode);
@@ -981,37 +1150,56 @@ public class TestController {
     private String getOnTex(String money) {
         BigDecimal bigDecimal = new BigDecimal(money);
         BigDecimal multiply = bigDecimal.divide(new BigDecimal("1.06"), 6);
-        String toString = multiply.toString();
-        return toString;
+        DecimalFormat df = new DecimalFormat("0.00");
+        String format = df.format(multiply);
+        return format;
     }
 
     private String getInTex(String money, String proportion) {
         Double mon = Double.valueOf(money);
         Double dou = Double.valueOf(proportion);
         double v = mon * dou;
-        return Double.toString(v);
+        DecimalFormat df = new DecimalFormat("0.00");
+        String format = df.format(v);
+        return format;
     }
 
     private String getRows(String name, Contract contract) {
         if (name.contains("印务")) {
-            return contract.getPrinting();
+            Double aDouble = Double.valueOf(contract.getPrinting());
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(aDouble);
+            return format;
         }
         if (name.contains("底稿")) {
-            return contract.getManuscript();
+            Double aDouble = Double.valueOf(contract.getManuscript());
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(aDouble);
+            return format;
         }
         if (name.contains("可研")) {
-            return contract.getFeasibility();
+            Double aDouble = Double.valueOf(contract.getFeasibility());
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(aDouble);
+            return format;
         }
         if (name.contains("信批")) {
-            return contract.getLetterApproved();
+            Double aDouble = Double.valueOf(contract.getLetterApproved());
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(aDouble);
+            return format;
         }
         if (name.contains("财务数据核对")) {
-            return contract.getFinance();
+            Double aDouble = Double.valueOf(contract.getFinance());
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(aDouble);
+            return format;
         }
         if (name.contains("软件")) {
             double v = Double.valueOf(contract.getEls()) + Double.valueOf(contract.getYxz());
-            String toString = Double.toString(v);
-            return toString;
+            DecimalFormat df = new DecimalFormat("0.00");
+            String format = df.format(v);
+            return format;
         }
         return null;
     }

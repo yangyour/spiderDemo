@@ -453,6 +453,8 @@ public class ContractExcelService {
         cell41.setCellValue("项目状态");
         XSSFCell cell42 = row1.createCell(32);
         cell42.setCellValue("终止时间");
+        XSSFCell cell43 = row1.createCell(33);
+        cell43.setCellValue("阶段状态");
 
 //        for (int i = 0; i < 31; i++) {
 //            XSSFCell cell11 = row1.createCell(1 + (3 * i));
