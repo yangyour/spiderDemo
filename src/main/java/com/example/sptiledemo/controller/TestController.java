@@ -132,16 +132,53 @@ public class TestController {
         DecimalFormat df = new DecimalFormat("0.00");
         int row = 1;
         for (Contract contract : contracts) {
-            if (contract.getStatus() == null) {
-                String conName = contract.getConName();
-                String[] conSp = conName.split("\\+");
-                for (int j = 0; j < conSp.length; j++) {
-                    String conNames = conSp[j];
-                    conNames = conNames.replaceAll("合同", "");
-                    List<Stock> stocks = stockMapper.selectByConCode(contract.getType(), conNames);
-                    if (conNames.contains("底稿")) {
-                        stocks = stockMapper.selectByConCode("0501", conNames);
+            String conName = contract.getConName();
+            String[] conSp = conName.split("\\+");
+            String code=contract.getCode();
+            for (int j = 0; j < conSp.length; j++) {
+                String conNames = conSp[j];
+                conNames = conNames.replaceAll("合同", "");
+                List<Stock> stocks = stockMapper.selectByConCode(contract.getType(), conNames);
+                if (conNames.contains("底稿")) {
+                    stocks = stockMapper.selectByConCode("0501", conNames);
+                }
+                List<TimeList> tL = timeListMapper.selectCode(contract.getCode(), conNames);
+                if (tL.size() > 0 && tL.get(tL.size() - 1).getTime() != null && !tL.get(tL.size() - 1).getTime().equals("")) {
+                    for (int i = 0; i < stocks.size(); i++) {
+                        List<TimeList> listList = timeListMapper.selectCode(contract.getCode(), stocks.get(i).getName());
+                        ContractList contractList = new ContractList();
+                        contractList.setSource("存货");
+                        contractList.setTax("6");
+                        contractList.setDiscount("100");
+                        contractList.setRows(row);
+                        contractList.setCode(contract.getCode());
+                        contractList.setName(contract.getName());
+                        contractList.setConName(stocks.get(i).getName());
+                        contractList.setdCode(contract.getType());
+                        String fcode = contract.getType().substring(0, 2);
+                        contractList.setfCode(fcode);
+                        contractList.setbCode(fcode + contract.getType());
+                        contractList.setCount(stocks.get(i).getProportion());
+                        String money = getRows(conSp[j], contract);
+                        if (money != null) {
+                            contractList.setMoney(money);
+                            String onTex = getInTex(money, stocks.get(i).getProportion());
+                            contractList.setNoTex(onTex);
+                            String inTex = getOnTex(onTex);
+                            contractList.setInTex(inTex);
+                        }
+                        List<TimeList> endtime = timeListMapper.selectCode(contract.getCode(), stocks.get(i).getName());
+                        if (endtime.size() > 0) {
+                            contractList.setEndTime(endtime.get(0).getTime());
+                        }
+                        if (listList.size()>0){
+                            contractList.setEndTime(listList.get(0).getTime());
+                        }
+                        contractList.setStatus(contract.getStatus());
+                        contractLists.add(contractList);
+                        row++;
                     }
+                } else if (contract.getStatus() == null) {
                     for (int i = 0; i < stocks.size(); i++) {
                         ContractList contractList = new ContractList();
                         contractList.setSource("存货");
@@ -172,29 +209,15 @@ public class TestController {
                         contractLists.add(contractList);
                         row++;
                     }
-                }
-            } else {
-                //当项目为终止状态时
-                List<RunningWater> runningWaters = runningWaterMapper.selectByConCode(contract.getCode());
-                if (runningWaters.size()>0){
-                    RunningWater runningWater = runningWaters.get(0);
-                String proportion = null;
+                } else {
+                    //当项目为终止状态时
+                    List<RunningWater> runningWaters = runningWaterMapper.selectByConCode(contract.getCode());
+                    if (runningWaters.size() > 0) {
+                        RunningWater runningWater = runningWaters.get(0);
+                        String proportion = null;
                         String one = runningWater.getOne();
                         if (!one.contains("万") && one.equals("1.0")) {
-                            String conName = contract.getConName();
-                            String[] conSp = conName.split("\\+");
-                            String code = contract.getCode();
-                            String name = null;
-
-                            for (int j = 0; j < conSp.length; j++) {
-                                String conNames = conSp[j];
-                                conNames = conNames.replaceAll("合同", "");
                                 List<TimeList> timeLists = timeListMapper.selectByConCode(code, conNames);
-                                List<Stock> stocks = stockMapper.selectByConCode(contract.getType(), conNames);
-                                if (conNames.contains("底稿")) {
-                                    stocks = stockMapper.selectByConCode("0501", conNames);
-                                    timeLists = timeListMapper.selectByConCode(code, conNames);
-                                }
                                 Double fontMoney = Double.valueOf(0);
                                 Double fontCount = Double.valueOf(0);
                                 if (timeLists.size() > 0) {
@@ -266,35 +289,10 @@ public class TestController {
                                     contractLists.add(contractList);
                                     row++;
                                 }
-                            }
                         } else if (!one.contains("万")) {
                             Double aDouble = Double.valueOf(one);
                             if (aDouble < 1) {
-                                String conName = contract.getConName();
-                                String[] conSp = conName.split("\\+");
-                                String code = contract.getCode();
-                                String name = null;
-                                for (int j = 0; j < conSp.length; j++) {
-                                    String conNames = conSp[j];
-                                    conNames = conNames.replaceAll("合同", "");
                                     List<TimeList> timeLists = timeListMapper.selectByConCode(code, conNames);
-                                    if (timeLists!=null&&timeLists.size()>0){
-                                        Iterator<TimeList> iterator = timeLists.iterator();
-                                        while (iterator.hasNext()) {
-                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                            try {
-                                                Date date1 = format.parse(iterator.next().getTime());
-                                                Date date2 = format.parse(contract.getTime());
-                                                int compareTo = date1.compareTo(date2);
-                                                if (compareTo==1){
-                                                    iterator.remove();
-                                                }
-                                            } catch (ParseException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }
-                                    List<Stock> stocks = stockMapper.selectByConCode(contract.getType(), conNames);
                                     //处理最后一个
 //                                    TimeList timeList = timeLists.get(timeLists.lastIndexOf(0));
 //                                    TimeList timeList1 = timeLists.get(0);
@@ -305,138 +303,6 @@ public class TestController {
                                         stocks = stockMapper.selectByConCode("0501", conNames);
                                         timeLists = timeListMapper.selectByConCode(code, conNames);
                                     }
-                                    if (timeLists.size() < 2 && timeLists.size() > 0) {
-                                        Iterator<TimeList> iterator = timeLists.iterator();
-                                        while (iterator.hasNext()) {
-                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                            try {
-                                                Date date1 = format.parse(iterator.next().getTime());
-                                                Date date2 = format.parse(contract.getTime());
-                                                int compareTo = date1.compareTo(date2);
-                                                if (compareTo==1){
-                                                    iterator.remove();
-                                                }
-                                            } catch (ParseException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        if (timeLists.size()>0){
-                                            ContractList contractList = new ContractList();
-                                            contractList.setSource("存货");
-                                            contractList.setTax("6");
-                                            contractList.setDiscount("100");
-                                            contractList.setRows(row);
-                                            contractList.setCode(contract.getCode());
-                                            contractList.setName(contract.getName());
-                                            if (timeLists.size() > 0) {
-                                                if (stocks.size() > 0) {
-                                                    contractList.setConName(stocks.get(timeLists.size() - 1).getName());
-                                                }
-                                            }
-                                            contractList.setdCode(contract.getType());
-                                            String fcode = contract.getType().substring(0, 2);
-                                            contractList.setfCode(fcode);
-                                            contractList.setbCode(fcode + contract.getType());
-                                            //对数量进行处理
-                                            ;
-//                                contractList.setCount(stocks.get(timeLists.size()-1).getProportion());
-                                            String money = getRows(conSp[j], contract);
-                                            Double aMoney = Double.valueOf(money);
-
-                                            contractList.setMoney(money);
-                                            //比例
-                                            Double con = Double.valueOf(runningWater.getOne());
-                                            Double noTe = aMoney * con;
-                                            double v = noTe / aMoney;
-                                            contractList.setCount(df.format(v));
-                                            contractList.setNoTex(df.format(noTe));
-                                            String inTex = getOnTex(noTe.toString());
-                                            contractList.setInTex(inTex);
-                                            if (stocks.size() > 0) {
-                                                List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(timeLists.size() - 1).getName());
-                                                if (endtime.size() > 0) {
-                                                    contractList.setEndTime(endtime.get(0).getTime());
-                                                }
-                                            }
-                                            if (!runningWater.getOne().equals("1.0")){
-                                                contractList.setStageStatus("该项目只做到了申报阶段");
-                                            }
-                                            contractList.setStatus(contract.getStatus());
-                                            contractList.setTime(contract.getTime());
-                                            contractLists.add(contractList);
-                                            row++;
-                                        }
-                                    }
-                                    if (timeLists.size() >= 8) {
-                                        Double fontMoney = Double.valueOf(0);
-                                        Double fontCount = Double.valueOf(0);
-                                        for (int i = 0; i < stocks.size() - 1; i++) {
-                                            ContractList contractList = new ContractList();
-                                            contractList.setSource("存货");
-                                            contractList.setTax("6");
-                                            contractList.setDiscount("100");
-                                            contractList.setRows(row);
-                                            contractList.setCode(contract.getCode());
-                                            contractList.setName(contract.getName());
-                                            contractList.setConName(stocks.get(i).getName());
-                                            contractList.setdCode(contract.getType());
-                                            String fcode = contract.getType().substring(0, 2);
-                                            contractList.setfCode(fcode);
-                                            contractList.setbCode(fcode + contract.getType());
-                                            contractList.setCount(stocks.get(i).getProportion());
-                                            fontCount = fontCount + Double.valueOf(stocks.get(i).getProportion());
-                                            String money = getRows(conSp[j], contract);
-                                            if (money != null) {
-                                                fontMoney = fontMoney + Double.valueOf(money);
-                                                String onTex = getInTex(money, stocks.get(i).getProportion());
-                                                contractList.setNoTex(onTex);
-                                                String inTex = getOnTex(onTex);
-                                                contractList.setInTex(inTex);
-                                            }
-                                            List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(i).getName());
-                                            if (endtime.size() > 0) {
-                                                contractList.setEndTime(endtime.get(0).getTime());
-                                            }
-                                            contractList.setStatus(contract.getStatus());
-                                            contractList.setTime(contract.getTime());
-                                            contractLists.add(contractList);
-                                            row++;
-                                        }
-                                        //处理最后一个
-                                        ContractList contractList = new ContractList();
-                                        contractList.setSource("存货");
-                                        contractList.setTax("6");
-                                        contractList.setDiscount("100");
-                                        contractList.setRows(row);
-                                        contractList.setCode(contract.getCode());
-                                        contractList.setName(contract.getName());
-                                        contractList.setConName(stocks.get(timeLists.size() - 1).getName());
-                                        contractList.setdCode(contract.getType());
-                                        String fcode = contract.getType().substring(0, 2);
-                                        contractList.setfCode(fcode);
-                                        contractList.setbCode(fcode + contract.getType());
-                                        //对数量进行处理
-                                        Double fontDo = 1 - fontCount;
-                                        contractList.setCount(fontDo.toString());
-//                                contractList.setCount(stocks.get(timeLists.size()-1).getProportion());
-                                        String money = getRows(conSp[j], contract);
-                                        Double aMoney = Double.valueOf(money);
-                                        Double nowMoney = aMoney - fontMoney;
-                                        contractList.setMoney(money);
-                                        contractList.setNoTex(nowMoney.toString());
-                                        String inTex = getOnTex(nowMoney.toString());
-                                        contractList.setInTex(inTex);
-                                        contractList.setStatus(contract.getStatus());
-                                        List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(timeLists.size() - 1).getName());
-                                        if (endtime.size() > 0) {
-                                            contractList.setEndTime(endtime.get(0).getTime());
-                                        }
-                                        contractList.setStatus(contract.getStatus());
-                                        contractList.setTime(contract.getTime());
-                                        contractLists.add(contractList);
-                                        row++;
-                                    }
-                                    if (timeLists.size() < 8 && timeLists.size() > 1) {
                                         String o1 = runningWater.getOne();
                                         String o2 = runningWater.getTwo();
                                         String o3 = runningWater.getThree();
@@ -447,52 +313,48 @@ public class TestController {
                                         if (o4 != null) {
                                             nowName = "发行与上市";
                                             Double.valueOf(o4);
-                                            name = nowName;
-                                            timeL = timeListMapper.selectByConCode(code, name);
+                                            timeL = timeListMapper.selectByConCode(code, nowName);
                                             if (timeL != null) {
                                                 dTime = dTime + Double.valueOf(o4) + Double.valueOf(o3) + Double.valueOf(o2) + Double.valueOf(o1);
                                             }
                                         } else if (o3 != null) {
                                             nowName = "上会";
-                                            name = nowName;
-                                            timeL = timeListMapper.selectByConCode(code, name);
+                                            timeL = timeListMapper.selectByConCode(code, nowName);
                                             if (timeL != null) {
                                                 dTime = dTime + Double.valueOf(o3) + Double.valueOf(o2) + Double.valueOf(o1);
                                             }
                                         } else if (o2 != null) {
                                             nowName = "反馈";
-                                            name = nowName;
-                                            timeL = timeListMapper.selectByConCode(code, name);
+                                            timeL = timeListMapper.selectByConCode(code, nowName);
                                             if (timeL != null) {
                                                 dTime = dTime + Double.valueOf(o2) + Double.valueOf(o1);
                                             }
                                         } else if (o1 != null) {
                                             nowName = "申报";
-                                            name = nowName;
-                                            timeL = timeListMapper.selectByConCode(code, name);
+                                            timeL = timeListMapper.selectByConCode(code, nowName);
                                             if (timeL != null) {
                                                 dTime = dTime + Double.valueOf(o1);
                                             }
                                         }
                                         if (dTime < 1) {
                                             for (int i = 0; i < stocks.size(); i++) {
-                                                name = stocks.get(i).getName();
+                                                String name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                Iterator<TimeList> iterator = timeLists.iterator();
-                                                while (iterator.hasNext()) {
-                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                                    try {
-                                                        Date date1 = format.parse(iterator.next().getTime());
-                                                        Date date2 = format.parse(contract.getTime());
-                                                        int compareTo = date1.compareTo(date2);
-                                                        if (compareTo==1){
-                                                            iterator.remove();
-                                                        }
-                                                    } catch (ParseException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                if (timeLists1.size()>0) {
+//                                                Iterator<TimeList> iterator = timeLists.iterator();
+//                                                while (iterator.hasNext()) {
+//                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+//                                                    try {
+//                                                        Date date1 = format.parse(iterator.next().getTime());
+//                                                        Date date2 = format.parse(contract.getTime());
+//                                                        int compareTo = date1.compareTo(date2);
+//                                                        if (compareTo==1){
+//                                                            iterator.remove();
+//                                                        }
+//                                                    } catch (ParseException e) {
+//                                                        e.printStackTrace();
+//                                                    }
+//                                                }
+                                                if (timeLists1.size() > 0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -568,23 +430,23 @@ public class TestController {
                                             }
                                         } else if (dTime == 1) {
                                             for (int i = 0; i < stocks.size(); i++) {
-                                                name = stocks.get(i).getName();
+                                                String name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                Iterator<TimeList> iterator = timeLists.iterator();
-                                                while (iterator.hasNext()) {
-                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                                    try {
-                                                        Date date1 = format.parse(iterator.next().getTime());
-                                                        Date date2 = format.parse(contract.getTime());
-                                                        int compareTo = date1.compareTo(date2);
-                                                        if (compareTo==1){
-                                                            iterator.remove();
-                                                        }
-                                                    } catch (ParseException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                if (timeLists1.size()>0) {
+//                                                Iterator<TimeList> iterator = timeLists.iterator();
+//                                                while (iterator.hasNext()) {
+//                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+//                                                    try {
+//                                                        Date date1 = format.parse(iterator.next().getTime());
+//                                                        Date date2 = format.parse(contract.getTime());
+//                                                        int compareTo = date1.compareTo(date2);
+//                                                        if (compareTo==1){
+//                                                            iterator.remove();
+//                                                        }
+//                                                    } catch (ParseException e) {
+//                                                        e.printStackTrace();
+//                                                    }
+//                                                }
+                                                if (timeLists1.size() > 0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -644,7 +506,7 @@ public class TestController {
                                                             contractList.setStageStatus("到了发行与上市");
                                                         }
                                                     }
-                                                    List<TimeList> endtime = timeListMapper.selectByConCode(contract.getCode(), stocks.get(i).getName());
+                                                    List<TimeList> endtime = timeListMapper.selectCode(contract.getCode(), stocks.get(i).getName());
                                                     if (endtime.size() > 0) {
                                                         contractList.setEndTime(endtime.get(0).getTime());
                                                     }
@@ -656,7 +518,7 @@ public class TestController {
                                             }
                                         } else if (dTime > 1) {
                                             for (int i = 0; i < stocks.size() - 1; i++) {
-                                                name = stocks.get(i).getName();
+                                                String name = stocks.get(i).getName();
                                                 List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
                                                 Double fontMoney = Double.valueOf(0);
                                                 Double fontCount = Double.valueOf(0);
@@ -715,19 +577,11 @@ public class TestController {
                                                 row++;
                                             }
                                         }
-                                    }
-                                }
                             } else if (aDouble > 1) {
-                                String conName = contract.getConName();
-                                String[] conSp = conName.split("\\+");
-                                String code = contract.getCode();
-
-                                for (int j = 0; j < conSp.length; j++) {
-                                    String conNames = conSp[j];
-                                    conNames = conNames.replaceAll("合同", "");
                                     String name = null;
                                     List<TimeList> timeLists = timeListMapper.selectByConCode(code, conNames);
-                                    List<Stock> stocks = stockMapper.selectByConCode(contract.getType(), conNames);
+                                System.out.println(code+":"+conNames);
+                                System.out.println(contract.getName()+JSON.toJSON(timeLists));
                                     if (conNames.contains("底稿")) {
                                         stocks = stockMapper.selectByConCode("0501", conNames);
                                     }
@@ -738,21 +592,21 @@ public class TestController {
 //                                    Date uDate = fomartTime(timeList1);
 //                                    int compareTo = fDate.compareTo(uDate);
                                     if (timeLists.size() < 2 && timeLists.size() > 0) {
-                                        Iterator<TimeList> iterator = timeLists.iterator();
-                                        while (iterator.hasNext()) {
-                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                            try {
-                                                Date date1 = format.parse(iterator.next().getTime());
-                                                Date date2 = format.parse(contract.getTime());
-                                                int compareTo = date1.compareTo(date2);
-                                                if (compareTo==1){
-                                                    iterator.remove();
-                                                }
-                                            } catch (ParseException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        if (timeLists.size()>0){
+//                                        Iterator<TimeList> iterator = timeLists.iterator();
+//                                        while (iterator.hasNext()) {
+//                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+//                                            try {
+//                                                Date date1 = format.parse(iterator.next().getTime());
+//                                                Date date2 = format.parse(contract.getTime());
+//                                                int compareTo = date1.compareTo(date2);
+//                                                if (compareTo == 1) {
+//                                                    iterator.remove();
+//                                                }
+//                                            } catch (ParseException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                        }
+                                        if (timeLists.size() > 0) {
                                             ContractList contractList = new ContractList();
                                             contractList.setSource("存货");
                                             contractList.setTax("6");
@@ -786,7 +640,7 @@ public class TestController {
                                             if (stocks.size() > 0) {
                                                 contractList.setConName(timeLists.get(0).getName());
                                             }
-                                            if (!runningWater.getOne().equals("1.0")){
+                                            if (!runningWater.getOne().equals("1.0")) {
                                                 contractList.setStageStatus("该项目只做到了申报阶段");
                                             }
                                             contractList.setStatus(contract.getStatus());
@@ -897,6 +751,8 @@ public class TestController {
                                                 dTime = dTime + Double.valueOf(o1);
                                             }
                                         }
+                                        System.out.println(dTime+"的值！！！！！");
+                                        System.out.println(Double.valueOf(getRows(conSp[j], contract)));
                                         if (dTime < Double.valueOf(getRows(conSp[j], contract))) {
                                             for (int i = 0; i < stocks.size(); i++) {
                                                 ContractList contractList = new ContractList();
@@ -969,25 +825,11 @@ public class TestController {
                                                 contractLists.add(contractList);
                                                 row++;
                                             }
-                                        } else if (dTime == Double.valueOf(getRows(conSp[j], contract))) {
+                                        } else if (dTime.equals(Double.valueOf(getRows(conSp[j], contract)))) {
                                             for (int i = 0; i < stocks.size(); i++) {
                                                 name = stocks.get(i).getName();
-                                                List<TimeList> timeLists1 = timeListMapper.selectByConCode(code, name);
-                                                Iterator<TimeList> iterator = timeLists.iterator();
-                                                while (iterator.hasNext()) {
-                                                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                                                    try {
-                                                        Date date1 = format.parse(iterator.next().getTime());
-                                                        Date date2 = format.parse(contract.getTime());
-                                                        int compareTo = date1.compareTo(date2);
-                                                        if (compareTo==1){
-                                                            iterator.remove();
-                                                        }
-                                                    } catch (ParseException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                if (timeLists1.size()>0) {
+                                                List<TimeList> timeLists1 = timeListMapper.selectCode(code, name);
+                                                if (timeLists1.size() > 0) {
                                                     ContractList contractList = new ContractList();
                                                     contractList.setSource("存货");
                                                     contractList.setTax("6");
@@ -1127,10 +969,10 @@ public class TestController {
                                             }
                                         }
                                     }
-                                }
-                                }
                             }
                         }
+                    }
+                }
             }
         }
         return contractLists;
