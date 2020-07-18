@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 public class Excel {
 
-    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\2017-2020发票\\荣大科技发票明细17-20.xls"; // 原文件路径
-    private static String outXlsPath = "C:\\Users\\31205\\Desktop\\2017-2020发票\\荣大科技发票明细17-20发票整理.xlsx"; // 生成路径
+    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\上海、深圳\\上海发票明细20200628.xls"; // 原文件路径
+    private static String outXlsPath = "C:\\Users\\31205\\Desktop\\上海、深圳\\上海发票明细发票整理.xlsx"; // 生成路径
 
     //对数据源Excel进行处理
     public static List<Reader> getExcel() {
@@ -57,39 +57,40 @@ public class Excel {
             for (int i = 1; i < sheet.getLastRowNum() + 1; i++) {
                 HSSFRow row2 = sheet.getRow(i);
                 Reader reader = new Reader();
-                if (null != row2.getCell(1) && !row2.getCell(1).toString().equals("发票号码")) {
-                    if (null != row2.getCell(1) && !row2.getCell(1).toString().equals("")) {
+                if (null != row2.getCell(2) && !row2.getCell(2).toString().equals("发票号码")) {
+                    if (null != row2.getCell(2) && !row2.getCell(2).toString().equals("")) {
 //                        Double num = row2.getCell(1).getNumericCellValue();
 //                        String format = df.format(num);
-                        String toString = row2.getCell(1).toString();
+                        String toString = row2.getCell(2).toString();
+                        System.out.println(toString);
                         reader.setNum(toString);
                     }
-                    if (null != row2.getCell(2) && !row2.getCell(2).toString().equals("")) {
-                        String name = row2.getCell(2).toString();
+                    if (null != row2.getCell(4) && !row2.getCell(4).toString().equals("")) {
+                        String name = row2.getCell(4).toString();
                         reader.setName(name);
                     }
-                    if (null != row2.getCell(3) && !row2.getCell(3).toString().equals("")) {
+                    if (null != row2.getCell(11) && !row2.getCell(11).toString().equals("")) {
 //                        String time = row2.getCell(9).toString();
 //                        Date d = (Date) row2.getCell(3).getDateCellValue();
 //                        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
 //                        String format = df2.format(d);
 //                        System.out.println(format);
 //                        reader.setTime(format);
-                        String d = row2.getCell(3).toString();
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");//注意月份是MM
-                        Date date=null;
-                        try {
-                            date= simpleDateFormat.parse(d);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                        String format = df2.format(date);
-                        System.out.println(format);
-                        reader.setTime(format);
+                        String d = row2.getCell(11).toString();
+//                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");//注意月份是MM
+//                        Date date=null;
+//                        try {
+//                            date= simpleDateFormat.parse(d);
+//                        } catch (ParseException e) {
+//                            e.printStackTrace();
+//                        }
+//                        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+//                        String format = df2.format(date);
+//                        System.out.println(format);
+                        reader.setTime(d);
                     }
-                    if (null != row2.getCell(11) && !row2.getCell(11).toString().equals("")) {
-                        String amount = row2.getCell(11).toString();
+                    if (null != row2.getCell(27) && !row2.getCell(27).toString().equals("")) {
+                        String amount = row2.getCell(27).toString();
                         BigDecimal bd = new BigDecimal(amount);
                         reader.setAmount(bd);
                     }

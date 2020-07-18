@@ -13,14 +13,14 @@
     </resultMap>
 
     <insert id="save" parameterType="com.example.sptiledemo.bean.RunningWater">
-        insert into runningWater (code,one,two,three,four) values
+        insert into runningwater_ky (code,one,two,three,four) values
           (
             #{runningWater.code},#{runningWater.one},#{runningWater.two},#{runningWater.three},#{runningWater.four}
             )
     </insert>
 
     <select id="selectByConCode" parameterType="String" resultMap="BaseResultMap">
-        select * from runningWater where code=#{code}
+        select * from runningwater_ky where code like concat('%',#{code})
     </select>
 
 </mapper>

@@ -27,6 +27,121 @@ public class Contract {
     //YXZ
     private String yxz;
 
+    private String rYear;
+
+    private String xYear;
+
+    private String qTime;
+
+    private String kCode;
+
+    //内核
+    private String nhTime;
+
+    //申报
+    private String sbTime;
+
+    //首次反馈
+    private String sfTime;
+
+    //二次反馈
+    private String efTime;
+
+    //首次补报表
+    private String scbTime;
+
+    //二次补报表
+    private String ecbTime;
+
+    //上会
+    private String shTime;
+
+    //封卷
+    private String fjTime;
+
+    //发行与上市
+    private String faTime;
+
+    public String getSfTime() {
+        return sfTime;
+    }
+
+    public void setSfTime(String sfTime) {
+        this.sfTime = sfTime;
+    }
+
+    public String getEfTime() {
+        return efTime;
+    }
+
+    public void setEfTime(String efTime) {
+        this.efTime = efTime;
+    }
+
+    public String getScbTime() {
+        return scbTime;
+    }
+
+    public void setScbTime(String scbTime) {
+        this.scbTime = scbTime;
+    }
+
+    public String getEcbTime() {
+        return ecbTime;
+    }
+
+    public void setEcbTime(String ecbTime) {
+        this.ecbTime = ecbTime;
+    }
+
+    public String getFjTime() {
+        return fjTime;
+    }
+
+    public void setFjTime(String fjTime) {
+        this.fjTime = fjTime;
+    }
+
+    public String getNhTime() {
+        return nhTime;
+    }
+
+    public void setNhTime(String nhTime) {
+        this.nhTime = nhTime;
+    }
+
+    public String getSbTime() {
+        return sbTime;
+    }
+
+    public void setSbTime(String sbTime) {
+        this.sbTime = sbTime;
+    }
+
+    public String getShTime() {
+        return shTime;
+    }
+
+    public void setShTime(String shTime) {
+        this.shTime = shTime;
+    }
+
+    public String getrYear() {
+        return rYear;
+    }
+
+    public void setrYear(String rYear) {
+        this.rYear = rYear;
+    }
+
+    public String getxYear() {
+        return xYear;
+    }
+
+    public void setxYear(String xYear) {
+        this.xYear = xYear;
+    }
+
     public String getCode() {
         return code;
     }
@@ -129,5 +244,29 @@ public class Contract {
 
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public String getqTime() {
+        return qTime;
+    }
+
+    public void setqTime(String qTime) {
+        this.qTime = qTime;
+    }
+
+    public String getkCode() {
+        return kCode;
+    }
+
+    public void setkCode(String kCode) {
+        this.kCode = kCode;
+    }
+
+    public String getFaTime() {
+        return faTime;
+    }
+
+    public void setFaTime(String faTime) {
+        this.faTime = faTime;
     }
 }

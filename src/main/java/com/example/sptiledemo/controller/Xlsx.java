@@ -20,8 +20,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Xlsx {
-    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\2017-2020发票\\商务二分发票明细.xls"; // 原文件路径
-    private static String outXlsPath = "C:\\Users\\31205\\Desktop\\2017-2020发票\\商务二分发票整理.xlsx"; // 生成路径
+    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\上海、深圳\\深圳发票2017-2020.xlsx"; // 原文件路径
+    private static String outXlsPath = "C:\\Users\\31205\\Desktop\\上海、深圳\\深圳发票2017-2020整理.xlsx"; // 生成路径
 
     //对数据源Excel进行处理
     public static List<Reader> getExcel() {
@@ -77,8 +77,8 @@ public class Xlsx {
                         String format = df2.format(date);
                         reader.setTime(format);
                     }
-                    if (null != row2.getCell(14) && !row2.getCell(14).toString().equals("")) {
-                        String amount = row2.getCell(14).toString();
+                    if (null != row2.getCell(18) && !row2.getCell(18).toString().equals("")) {
+                        String amount = row2.getCell(18).toString();
                         BigDecimal bd = new BigDecimal(amount);
                         reader.setAmount(bd);
                     }

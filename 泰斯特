@@ -1,0 +1,63 @@
+<p>//linux命令<br />
+//查询进程<br />
+ps -aux | grep ***<br />
+//杀死进程&nbsp;<br />
+kill -9 pid<br />
+//vue解决内存泄漏<br />
+npm install -g increase-memory-limit<br />
+increase-memory-limit<br />
+find / -name &#39;rabbitmq&#39; -type d<br />
+/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf</p>
+
+<p>docker logs --tail &nbsp;300 -f &nbsp;+id docker查看容器</p>
+
+<p>//git提交</p>
+
+<p>git pull origi develop</p>
+
+<p>&nbsp;</p>
+
+<p>//打包镜像</p>
+
+<p>docker build -t xxx .</p>
+
+<p>//查看日志</p>
+
+<p>docker logs -f dblog</p>
+
+<p>cnpm install node-sass@latest 博客后台依赖解决办法</p>
+
+<p>//docer安装redis</p>
+
+<p>docker pull redis<br />
+docker run -d -p 6379:6379 --name myredis redis --requirepass &quot;123456&quot;</p>
+
+<p>redis-cli -h localhost -p 6379 &nbsp;-a 123456</p>
+
+<p>//查看服务状态</p>
+
+<p>service [servicename] status</p>
+
+<p>// 关闭服务sh文件</p>
+
+<p>./shutdown.sh</p>
+
+<p>//开启服务.sh文件</p>
+
+<p>nohup ./startup.sh &amp;</p>
+
+<p>&nbsp;</p>
+
+<p>//查询进程</p>
+
+<p>ps -aux | grep</p>
+
+<p>//svn相关</p>
+
+<p>svn import D:\gyscc\gyssc svn://58.22.61.222:33690/base/java/gyssc/gyssc_backend/gyssc -m &quot;项目提交&quot;</p>
+
+<p>netstat -tunlp</p>
+
+<p>//docker 运行mq镜像</p>
+
+<p>docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq rabbitmq:management</p>

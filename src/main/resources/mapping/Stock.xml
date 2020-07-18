@@ -25,6 +25,13 @@
         </if>
     </select>
 
+    <select id="selectCode" parameterType="String" resultMap="BaseResultMap">
+        select * from stock where conCode like concat(#{conCode},'%')
+        <if test="conNames != null and conNames != ''">
+            and name like concat(#{conNames},'%')
+        </if>
+    </select>
+
 <!--    <select id="selectCount" resultType="Integer">-->
 <!--        select count(1) from qcspiter;-->
 <!--    </select>-->

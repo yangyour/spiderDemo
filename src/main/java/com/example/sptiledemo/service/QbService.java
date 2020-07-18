@@ -1,10 +1,8 @@
 package com.example.sptiledemo.service;
 
-import com.alibaba.fastjson.JSON;
 import com.example.sptiledemo.bean.*;
 import com.example.sptiledemo.mapper.StockMapper;
 import com.example.sptiledemo.mapper.TimeListMapper;
-import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -18,17 +16,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_NUMERIC;
 
-public class ContractExcelService {
-    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\数据\\荣大商务\\全包打包\\荣大商务2017-2019全包打包合同台账.XLS"; // 原文件路径
+public class QbService {
+    private static String desXlsPath = "C:\\Users\\31205\\Desktop\\数据处理文件\\7-17\\荣大科技2017-2020全包打包合同台账(1).XLS"; // 原文件路径
     private static String timeXlsPath = "D:\\learn\\数据处理文件\\原始文件\\时间.XLS"; // 原文件路径
-    private static String time1XlsPath = "C:\\Users\\31205\\Desktop\\荣大商务2017-2019全包打包合同台账(2).XLS"; // 原文件路径
+    private static String time1XlsPath = "C:\\Users\\31205\\Desktop\\数据\\荣大商务\\全包打包\\荣大商务2017-2019全包打包合同台账.XLS"; // 原文件路径
     private static String outXlsPath = "D:\\learn\\数据处理文件\\数据输出文件\\ceshi.xlsx"; // 生成路径
     private static String osXlsPath = "D:\\learn\\数据处理文件\\数据输出文件\\终止对比.xlsx"; // 生成路径
     private static String seXlsPath = "D:\\learn\\数据处理文件\\原始文件\\非科创版项目终止审核2017-2020(1).xlsx"; // 生成路径
@@ -189,6 +185,17 @@ public class ContractExcelService {
                         String code = row2.getCell(0).toString();
                         contract.setCode(code);
                     }
+                    if (null != row2.getCell(2) && !row2.getCell(2).toString().equals("")) {
+                        if (row2.getCell(2).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(2).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setqTime(format);
+                        } else {
+                            String d = row2.getCell(2).toString();
+                            contract.setqTime(d);
+                        }
+                    }
                     if (null != row2.getCell(3) && !row2.getCell(3).toString().equals("")) {
                         String name = row2.getCell(3).toString();
                         contract.setName(name);
@@ -200,17 +207,6 @@ public class ContractExcelService {
                     if (null != row2.getCell(5) && !row2.getCell(5).toString().equals("")) {
                         String conName = row2.getCell(5).toString();
                         contract.setConName(conName);
-                    }
-                    if (null != row2.getCell(2) && !row2.getCell(2).toString().equals("")) {
-                        if (row2.getCell(2).getCellType() == CELL_TYPE_NUMERIC) {
-                            Date d = (Date) row2.getCell(2).getDateCellValue();
-                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
-                            String format = df2.format(d);
-                            contract.setqTime(format);
-                        } else {
-                            String d = row2.getCell(2).toString();
-                            contract.setqTime(d);
-                        }
                     }
                     if (null != row2.getCell(6) && !row2.getCell(6).toString().equals("")) {
                         String status = row2.getCell(6).toString();
@@ -267,6 +263,103 @@ public class ContractExcelService {
                         String xYear = row2.getCell(18).toString();
                         contract.setxYear(xYear);
                     }
+
+                    if (null != row2.getCell(19) && !row2.getCell(19).toString().equals("")) {
+                        if (row2.getCell(19).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(19).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setSbTime(format);
+                        } else {
+                            String d = row2.getCell(19).toString();
+                            contract.setSbTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(20) && !row2.getCell(20).toString().equals("")) {
+                        if (row2.getCell(20).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(20).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setSfTime(format);
+                        } else {
+                            String d = row2.getCell(20).toString();
+                            contract.setSfTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(21) && !row2.getCell(21).toString().equals("")) {
+                        if (row2.getCell(21).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(21).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setEfTime(format);
+                        } else {
+                            String d = row2.getCell(21).toString();
+                            contract.setEfTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(22) && !row2.getCell(22).toString().equals("")) {
+                        if (row2.getCell(22).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(22).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setScbTime(format);
+                        } else {
+                            String d = row2.getCell(22).toString();
+                            contract.setScbTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(23) && !row2.getCell(23).toString().equals("")) {
+                        if (row2.getCell(23).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(23).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setEcbTime(format);
+                        } else {
+                            String d = row2.getCell(23).toString();
+                            contract.setEcbTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(24) && !row2.getCell(24).toString().equals("")) {
+                        if (row2.getCell(24).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(24).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setShTime(format);
+                        } else {
+                            String d = row2.getCell(24).toString();
+                            contract.setShTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(25) && !row2.getCell(25).toString().equals("")) {
+                        if (row2.getCell(25).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(25).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setFjTime(format);
+                        } else {
+                            String d = row2.getCell(25).toString();
+                            contract.setFjTime(d);
+                        }
+                    }
+
+                    if (null != row2.getCell(26) && !row2.getCell(26).toString().equals("")) {
+                        if (row2.getCell(26).getCellType() == CELL_TYPE_NUMERIC) {
+                            Date d = (Date) row2.getCell(26).getDateCellValue();
+                            DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd");//HH:mm:ss
+                            String format = df2.format(d);
+                            contract.setFaTime(format);
+                        } else {
+                            String d = row2.getCell(26).toString();
+                            contract.setFaTime(d);
+                        }
+                    }
+
                     readers.add(contract);
                 }
             }
@@ -283,7 +376,7 @@ public class ContractExcelService {
         try {
             HSSFWorkbook HSSFWorkbook = new HSSFWorkbook(new FileInputStream(desXlsPath));
             //所有年份的4个sheet
-            HSSFSheet sheet = HSSFWorkbook.getSheetAt(4);
+            HSSFSheet sheet = HSSFWorkbook.getSheetAt(2);
             //解析出excel中所需的数据
             List<RunningWater> readers = getRunningWaterSheet(sheet);
             readerList.addAll(readers);
@@ -877,3 +970,4 @@ public class ContractExcelService {
 
     }
 }
+

@@ -22,6 +22,8 @@ public interface StockMapper{
      * 分页查找全部信息
      */
     List<Stock> selectByConCode(@Param("conCode")String conCode,@Param("conNames")String conNames);
+
+    List<Stock> selectCode(@Param("conCode")String conCode,@Param("conNames")String conNames);
 //    /**
 //     * 查找表的记录数
 //     */
